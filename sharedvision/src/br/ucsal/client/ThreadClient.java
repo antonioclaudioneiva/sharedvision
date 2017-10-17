@@ -87,6 +87,21 @@ public class ThreadClient extends Thread {
 		}
 		return null;
 	}
+	
+	private BufferedImage requestUnlockKeys() {
+		logger.debug("Request screen image...");
+		byte[] clientRequestCode = new byte[1];
+		clientRequestCode[0] = ThreadServer.REQUEST_UNLOCK_KEYS;
+		try {
+			sendRequest(clientRequestCode);
+			BufferedImage screenImage = receiveScreenImage();
+			logger.debug("Screen image received");
+			return screenImage;
+		} catch (IOException e) {
+			logger.error("Request screen image error: " + e.getMessage());
+		}
+		return null;
+	}
 
 	private void sendRequest(byte[] clientRequestCode) throws IOException {
 		logger.debug("Sending request (" + clientRequestCode[0] + ")...");

@@ -9,12 +9,15 @@ import java.nio.ByteBuffer;
 import org.apache.log4j.Logger;
 
 import br.ucsal.client.Client;
+import br.ucsal.screen.KeyHook;
 import br.ucsal.screen.ScreenService;
 
 public class ThreadServer extends Thread {
 
 	public static final int REQUEST_SCREEN_IMAGE = 1;
 
+	public static final int REQUEST_UNLOCK_KEYS = 3;
+	
 	public static final int WELCOME_CODE = 2;
 
 	private Socket socket;
@@ -68,14 +71,18 @@ public class ThreadServer extends Thread {
 		}
 	}
 
-	static int imgNumber = 0;
-
 	private void executeClientRequest(byte clientRequestCode) throws IOException {
 		switch (clientRequestCode) {
 		case REQUEST_SCREEN_IMAGE:
 			logger.debug("Sending screen image...");
 			sendScreenImage();
 			logger.debug("Screen image sent.");
+			break;
+
+		case REQUEST_UNLOCK_KEYS:
+			logger.debug("Unlocking keys...");
+			KeyHook.unblockWindowsKey();
+			logger.debug("Keys unlockeds.");
 			break;
 
 		default:

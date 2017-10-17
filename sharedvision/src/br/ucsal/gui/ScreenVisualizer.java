@@ -11,21 +11,35 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 
 import br.ucsal.properties.PropertiesService;
+import br.ucsal.screen.KeyHook;
+import br.ucsal.util.TimerService;
 
 public class ScreenVisualizer extends JPanel implements WindowListener {
 
 	private static final long serialVersionUID = 1L;
 
 	private BufferedImage screenImage;
-	
-	private JFrame jFrame = new JFrame(PropertiesService.getSystemFullIdentification());
+
+	private static JFrame jFrame = new JFrame(PropertiesService.getSystemFullIdentification());
 
 	public ScreenVisualizer() {
+
+		KeyHook.blockWindowsKey();
+		
+		new Thread(){
+			@Override
+			public void run() {
+				TimerService.sleep(20000);
+				KeyHook.unblockWindowsKey();
+			};
+		}.start();
+
 		jFrame.setLocationRelativeTo(null);
 		jFrame.setUndecorated(true);
 		jFrame.getContentPane().add(this);
 		jFrame.setAlwaysOnTop(true);
 		jFrame.setLocationByPlatform(true);
+		jFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		jFrame.pack();
 
 		GraphicsDevice d = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
@@ -34,6 +48,10 @@ public class ScreenVisualizer extends JPanel implements WindowListener {
 		jFrame.setVisible(true);
 
 		jFrame.addWindowListener(this);
+	}
+
+	public static JFrame getFrame() {
+		return jFrame;
 	}
 
 	public void windowOpened(WindowEvent event) {
@@ -56,6 +74,7 @@ public class ScreenVisualizer extends JPanel implements WindowListener {
 	};
 
 	public void windowClosing(WindowEvent event) {
+
 	};
 
 	@Override

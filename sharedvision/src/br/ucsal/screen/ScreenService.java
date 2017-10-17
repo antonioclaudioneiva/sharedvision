@@ -22,11 +22,11 @@ import br.ucsal.util.TimerService;
 public class ScreenService extends Thread {
 
 	private byte[] imageByte;
-	
+
 	private Robot robot;
-	
+
 	private Rectangle screenRect;
-	
+
 	private BufferedImage mouseImage = null;
 
 	public ScreenService() throws AWTException {
@@ -46,6 +46,7 @@ public class ScreenService extends Thread {
 	private void defineSharedScreenArea() {
 		logger.debug("Setting shared screen area...");
 		screenRect = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
+		screenRect = new Rectangle(300, 300, 450, 450);
 		logger.debug("Shared screen area set.");
 	}
 
@@ -58,7 +59,7 @@ public class ScreenService extends Thread {
 		graphics.drawLine(10, 0, 10, 20);
 		logger.debug("Cursor image created.");
 	}
-	
+
 	@Override
 	public void run() {
 		while (true) {
