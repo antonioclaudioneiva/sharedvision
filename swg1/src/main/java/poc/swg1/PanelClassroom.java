@@ -191,7 +191,7 @@ public class PanelClassroom extends JPanel {
 	}
 
 	private void drawBoard(Graphics g) {
-		g.setColor(CHAIR_BACKGROUND_COLOR);
+		g.setColor(BOARD_BACKGROUND_COLOR);
 		g.fillRect(boardWidthShift, height - boardHeight - BOTTOM_FIX_SPACING, boardWidth, boardHeight);
 		g.setColor(CHAIR_BORDER_COLOR);
 		g.drawRect(boardWidthShift, height - boardHeight - BOTTOM_FIX_SPACING, boardWidth, boardHeight);
