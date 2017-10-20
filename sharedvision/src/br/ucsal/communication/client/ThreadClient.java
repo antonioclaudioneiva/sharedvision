@@ -1,4 +1,4 @@
-package br.ucsal.client;
+package br.ucsal.communication.client;
 
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
@@ -12,22 +12,25 @@ import javax.imageio.ImageIO;
 
 import org.apache.log4j.Logger;
 
+import br.ucsal.communication.server.ThreadServer;
 import br.ucsal.gui.ScreenVisualizer;
 import br.ucsal.properties.PropertiesService;
-import br.ucsal.server.ThreadServer;
 import br.ucsal.util.TimerService;
 
 public class ThreadClient extends Thread {
 
 	private String host;
-	
+
 	private Integer port;
-	
+
 	private Socket socket;
 
 	private ScreenVisualizer screenVisualizer;
-	
+
 	private Client client;
+
+	// FIXME Refatorar;
+	public Boolean keyLocked = true;
 
 	public ThreadClient(String host, Integer port, ScreenVisualizer screenVisualizer, Client client) {
 		this.host = host;
@@ -46,12 +49,12 @@ public class ThreadClient extends Thread {
 			objectOutputStream.writeObject(client);
 			logger.debug("Client identification sent.");
 		} catch (IOException e) {
-			logger.error("Client identification sent failed: "+e.getMessage());
+			logger.error("Client identification sent failed: " + e.getMessage());
 		}
 	}
 
 	private void requestConnection() {
-		logger.info("Request server connection ("+host+":"+port+")...");
+		logger.info("Request server connection (" + host + ":" + port + ")...");
 		try {
 			socket = new Socket(host, port);
 			int serverResponse = new DataInputStream(socket.getInputStream()).readInt();
@@ -87,20 +90,27 @@ public class ThreadClient extends Thread {
 		}
 		return null;
 	}
-	
-	private BufferedImage requestUnlockKeys() {
-		logger.debug("Request screen image...");
+
+	public void requestUnlockKeys() {
+		logger.info("Request unlock keys...");
 		byte[] clientRequestCode = new byte[1];
 		clientRequestCode[0] = ThreadServer.REQUEST_UNLOCK_KEYS;
 		try {
 			sendRequest(clientRequestCode);
-			BufferedImage screenImage = receiveScreenImage();
-			logger.debug("Screen image received");
-			return screenImage;
 		} catch (IOException e) {
-			logger.error("Request screen image error: " + e.getMessage());
+			logger.error("Request screen unlock keys");
 		}
-		return null;
+	}
+
+	public void requestLockKeys() {
+		logger.info("Request lock keys...");
+		byte[] clientRequestCode = new byte[1];
+		clientRequestCode[0] = ThreadServer.REQUEST_LOCK_KEYS;
+		try {
+			sendRequest(clientRequestCode);
+		} catch (IOException e) {
+			logger.error("Request screen lock keys");
+		}
 	}
 
 	private void sendRequest(byte[] clientRequestCode) throws IOException {

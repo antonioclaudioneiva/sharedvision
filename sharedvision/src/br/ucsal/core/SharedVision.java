@@ -1,12 +1,15 @@
 package br.ucsal.core;
 
 import java.awt.AWTException;
+import java.io.IOException;
 
 import org.apache.log4j.Logger;
 
-import br.ucsal.client.Client;
-import br.ucsal.client.ThreadClient;
+import br.ucsal.communication.client.Client;
+import br.ucsal.communication.client.ThreadClient;
+import br.ucsal.communication.server.Listener;
 import br.ucsal.gui.ScreenVisualizer;
+import br.ucsal.gui.SysTray;
 import br.ucsal.ldap.LDAPObject;
 import br.ucsal.ldap.LDAPService;
 import br.ucsal.properties.OperationModeEnum;
@@ -15,30 +18,54 @@ import br.ucsal.properties.PropertiesDefault;
 import br.ucsal.properties.PropertiesEnum;
 import br.ucsal.properties.PropertiesService;
 import br.ucsal.screen.ScreenService;
-import br.ucsal.server.Listener;
 import br.ucsal.util.TimerService;
 
 public class SharedVision {
 
 	private OperationModeEnum operationMode = OperationModeEnum.STUDENT;
 
-	private String host = null;
+	private String teacherHost = null;
 
-	private Integer port = 2000;
+	private Integer teacherServerPort = 2000;
+
+	// FIXME Parametrizar essa porta.
+	private Integer studentServerPort = 2001;
+
+	private static SharedVision instance = null;
 
 	public static void main(String[] args) {
 		new SharedVision(args);
 	}
 
 	public SharedVision(String[] args) {
+		instance = this;
 		initParameters(args);
 		start();
+	}
+
+	public static SharedVision getInstance() {
+		return instance;
+	}
+
+	public OperationModeEnum getOperationMode() {
+		return operationMode;
+	}
+
+	public Integer getStudentServerPort() {
+		return studentServerPort;
 	}
 
 	private void start() {
 		startServer();
 		if (OperationModeEnum.STUDENT.equals(this.operationMode)) {
 			startClient();
+		} else {
+			SysTray sysTray = new SysTray();
+			try {
+				sysTray.createSysTray();
+			} catch (IOException e) {
+				logger.error("SysTray startup failed.");
+			}
 		}
 	}
 
@@ -48,8 +75,11 @@ public class SharedVision {
 			ScreenService screenService = new ScreenService();
 			screenService.start();
 			TimerService.sleep(1000);
-
-			new Listener(screenService, port).start();
+			if (OperationModeEnum.TEACHER.equals(operationMode)) {
+				new Listener(screenService, teacherServerPort).start();
+			} else {
+				new Listener(screenService, studentServerPort).start();
+			}
 			logger.info("Server started.");
 		} catch (AWTException e) {
 			logger.error("Start server failed:" + e.getMessage());
@@ -59,7 +89,11 @@ public class SharedVision {
 	private void startClient() {
 		ScreenVisualizer screenVisualizer = new ScreenVisualizer();
 		Client client = identifyClient();
-		new ThreadClient(host, port, screenVisualizer, client).start();
+		new ThreadClient(teacherHost, teacherServerPort, screenVisualizer, client).start();
+	}
+
+	private void setHost(String value) {
+		teacherHost = value;
 	}
 
 	private Client identifyClient() {
@@ -90,10 +124,10 @@ public class SharedVision {
 
 	private void initMissingParameters() {
 		logger.debug("Initializing default parameters...");
-		if (host == null) {
-			host = PropertiesService.getProperty(PropertiesEnum.HOST);
-			if (host == null) {
-				host = PropertiesDefault.HOST_DEFAULT;
+		if (teacherHost == null) {
+			teacherHost = PropertiesService.getProperty(PropertiesEnum.HOST);
+			if (teacherHost == null) {
+				teacherHost = PropertiesDefault.HOST_DEFAULT;
 			}
 		}
 		logger.debug("Default parameters initialized.");
@@ -115,10 +149,10 @@ public class SharedVision {
 			this.operationMode = OperationModeEnum.valueOf(value);
 			break;
 		case HOST:
-			this.host = value;
+			setHost(value);
 			break;
 		case PORT:
-			this.port = Integer.valueOf(value);
+			this.teacherServerPort = Integer.valueOf(value);
 			break;
 		default:
 			break;

@@ -1,4 +1,4 @@
-package br.ucsal.client;
+package br.ucsal.communication.client;
 
 import java.io.Serializable;
 

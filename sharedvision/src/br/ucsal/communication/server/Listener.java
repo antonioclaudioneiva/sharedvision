@@ -1,4 +1,4 @@
-package br.ucsal.server;
+package br.ucsal.communication.server;
 
 import java.io.IOException;
 import java.net.ServerSocket;

@@ -13,7 +13,7 @@ import javax.naming.directory.SearchResult;
 
 import org.apache.log4j.Logger;
 
-import br.ucsal.client.ThreadClient;
+import br.ucsal.communication.client.ThreadClient;
 import br.ucsal.properties.PropertiesEnum;
 import br.ucsal.properties.PropertiesService;
 
