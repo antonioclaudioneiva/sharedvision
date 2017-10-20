@@ -2,6 +2,11 @@ package poc.swg1;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
@@ -31,6 +36,8 @@ public class PanelClassroom extends JPanel {
 	private static final Color BOARD_BORDER_COLOR = Color.BLACK;
 
 	private static final int QTY_ROWS = 4;
+
+	private static final Color MONITOR_TEXT_COLOR = Color.RED;
 
 	private int width;
 
@@ -76,10 +83,13 @@ public class PanelClassroom extends JPanel {
 
 	private int boardWidthShift;
 
+	private static Map<Integer, Rectangle> monitors = new HashMap<>();
+
 	public PanelClassroom(int width, int height) {
 		this.width = width;
 		this.height = height;
 		calcObjectsSize();
+		addMouseListener(mouseAdapter);
 	}
 
 	private void calcObjectsSize() {
@@ -121,21 +131,22 @@ public class PanelClassroom extends JPanel {
 
 	private void dramCompleteStands(Graphics g) {
 		boolean reversed = false;
+		Integer id = 0;
 		for (int row = 0; row < QTY_ROWS; row++) {
 			if (row == QTY_ROWS - 1) {
 				reversed = true;
 			}
 			drawCompleteStand(g, completeStandWallWidthSpacing,
-					completeStandHeigh + completeStandStandHeightSpacing * row, reversed);
+					completeStandHeigh + completeStandStandHeightSpacing * row, reversed, id++, id++);
 			drawCompleteStand(g, width - completeStandWidth - completeStandWallWidthSpacing - RIGHT_FIX_SPACING,
-					completeStandHeigh + completeStandStandHeightSpacing * row, false);
+					completeStandHeigh + completeStandStandHeightSpacing * row, false, id++, id++);
 		}
 	}
 
-	private void drawCompleteStand(Graphics g, int x, int y, boolean reversed) {
+	private void drawCompleteStand(Graphics g, int x, int y, boolean reversed, Integer id1, Integer id2) {
 		drawStand(g, x, y);
-		drawMonitor(g, x, y, 0);
-		drawMonitor(g, x, y, 1);
+		drawMonitor(g, x, y, 0, id1);
+		drawMonitor(g, x, y, 1, id2);
 		drawChair(g, x, y, 0, false);
 		drawChair(g, x, y, 1, reversed);
 	}
@@ -147,12 +158,19 @@ public class PanelClassroom extends JPanel {
 		g.drawRoundRect(x, y, standWidth, standHeight, standArcSize, standArcSize);
 	}
 
-	private void drawMonitor(Graphics g, int x, int y, int pos) {
-		x = x + pos * standWidth / 2 + monitorWidthShift;
+	private void drawMonitor(Graphics g, int x, int y, int pos, int id) {
+		if (!monitors.containsKey(id)) {
+			x = x + pos * standWidth / 2 + monitorWidthShift;
+			monitors.put(id, new Rectangle(x, y + monitorHeightShift, monitorWidth, monitorHeight));
+		}
+		Rectangle monitor = monitors.get(id);
 		g.setColor(MONITOR_BACKGROUND_COLOR);
-		g.fillRect(x, y + monitorHeightShift, monitorWidth, monitorHeight);
+		g.fillRect(monitor.x, monitor.y, monitor.width, monitor.height);
 		g.setColor(MONITOR_BORDER_COLOR);
-		g.drawRect(x, y + monitorHeightShift, monitorWidth, monitorHeight);
+		g.drawRect(monitor.x, monitor.y, monitor.width, monitor.height);
+		g.setColor(MONITOR_TEXT_COLOR);
+		String text = "(" + id + ")";
+		g.drawString(text, x + monitorHeight / 2, y + monitorHeight / 2);
 	}
 
 	private void drawChair(Graphics g, int x, int y, int pos, boolean reversed) {
@@ -193,8 +211,21 @@ public class PanelClassroom extends JPanel {
 	private void drawBoard(Graphics g) {
 		g.setColor(BOARD_BACKGROUND_COLOR);
 		g.fillRect(boardWidthShift, height - boardHeight - BOTTOM_FIX_SPACING, boardWidth, boardHeight);
-		g.setColor(CHAIR_BORDER_COLOR);
+		g.setColor(BOARD_BORDER_COLOR);
 		g.drawRect(boardWidthShift, height - boardHeight - BOTTOM_FIX_SPACING, boardWidth, boardHeight);
 	}
+
+	final MouseAdapter mouseAdapter = new MouseAdapter() {
+		@Override
+		public void mousePressed(MouseEvent me) {
+			System.out.println("mousePressed=" + me.getPoint());
+			for (Integer id : monitors.keySet()) {
+				Rectangle monitor = monitors.get(id);
+				if (me.getX() >= monitor.getX() && me.getX() <= monitor.x + monitor.width && me.getY() >= monitor.y
+						&& me.getY() <= monitor.y + monitor.height) {
+				}
+			}
+		}
+	};
 
 }
